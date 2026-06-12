@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Food Adviser AI</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f5f7fa;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    header {
+      width: 100%;
+      background: linear-gradient(135deg, #1a1a2e, #16213e);
+      padding: 40px 20px;
+      text-align: center;
+      color: white;
+    }
+
+    header h1 { font-size: 2rem; font-weight: 700; letter-spacing: -0.5px; }
+    header p { margin-top: 8px; color: #aab4be; font-size: 1rem; }
+
+    .container {
+      width: 100%;
+      max-width: 700px;
+      padding: 32px 20px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 32px;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+    }
+
+    .field { margin-bottom: 20px; }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #4a5568;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 10px;
+      font-size: 1rem;
+      color: #2d3748;
+      transition: border-color 0.2s;
+      outline: none;
+    }
+
+    input[type="text"]:focus { border-color: #667eea; }
+
+    .source-group {
+      display: flex;
+      gap: 12px;
+    }
+
+    .source-option {
+      flex: 1;
+      position: relative;
+    }
+
+    .source-option input[type="radio"] { display: none; }
+
+    .source-option label {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 14px;
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #4a5568;
+      text-transform: none;
+      letter-spacing: 0;
+      transition: all 0.2s;
+    }
+
+    .source-option label img {
+      width: 22px;
+      height: 22px;
+      object-fit: contain;
+    }
+
+    .source-option input[type="radio"]:checked + label {
+      border-color: #667eea;
+      background: #eef0fd;
+      color: #4c51bf;
+    }
+
+    button[type="submit"] {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+
+    button[type="submit"]:hover { opacity: 0.92; }
+    button[type="submit"]:active { transform: scale(0.99); }
+    button[type="submit"]:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .spinner {
+      display: none;
+      margin: 32px auto;
+      width: 42px;
+      height: 42px;
+      border: 4px solid #e2e8f0;
+      border-top-color: #667eea;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .error-box {
+      display: none;
+      background: #fff5f5;
+      border: 1.5px solid #fc8181;
+      color: #c53030;
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin-top: 20px;
+      font-size: 0.95rem;
+    }
+
+    .results-header {
+      display: none;
+      margin-top: 32px;
+      font-size: 1rem;
+      font-weight: 600;
+      color: #4a5568;
+    }
+
+    .results-header span {
+      color: #667eea;
+    }
+
+    .results-grid {
+      margin-top: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .result-card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 1px 8px rgba(0,0,0,0.07);
+      border-left: 4px solid #667eea;
+    }
+
+    .result-card h3 {
+      font-size: 1.05rem;
+      color: #2d3748;
+      font-weight: 700;
+    }
+
+    .result-meta {
+      margin-top: 8px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      font-size: 0.85rem;
+      color: #718096;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: #f7fafc;
+      border: 1px solid #e2e8f0;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 0.82rem;
+    }
+
+    .badge.rating { border-color: #f6ad55; color: #c05621; background: #fffaf0; }
+    .badge.price  { border-color: #68d391; color: #276749; background: #f0fff4; }
+
+    .result-address {
+      margin-top: 10px;
+      font-size: 0.88rem;
+      color: #718096;
+    }
+
+    .result-link {
+      display: inline-block;
+      margin-top: 10px;
+      font-size: 0.88rem;
+      color: #667eea;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .result-link:hover { text-decoration: underline; }
+
+    .no-results {
+      text-align: center;
+      color: #a0aec0;
+      padding: 40px 0;
+      font-size: 0.95rem;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>🍽 Food Adviser AI</h1>
+  <p>Find the best restaurants using Google Maps or TripAdvisor</p>
+</header>
+
+<div class="container">
+  <div class="card">
+    <form id="searchForm">
+
+      <div class="field">
+        <label for="location">Location</label>
+        <input type="text" id="location" placeholder="e.g. New York City, London, Tokyo" required />
+      </div>
+
+      <div class="field">
+        <label for="foodType">Food Type</label>
+        <input type="text" id="foodType" placeholder="e.g. pizza, sushi, burgers" />
+      </div>
+
+      <div class="field">
+        <label>Data Source</label>
+        <div class="source-group">
+          <div class="source-option">
+            <input type="radio" name="source" id="google" value="google" checked />
+            <label for="google">
+              <svg width="22" height="22" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.2l6.7-6.7C35.7 2.5 30.2 0 24 0 14.6 0 6.6 5.4 2.7 13.3l7.8 6.1C12.3 13.1 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17z"/><path fill="#FBBC05" d="M10.5 28.6A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.1.8-4.6L2.5 13.3A24 24 0 0 0 0 24c0 3.8.9 7.4 2.5 10.6l8-6z"/><path fill="#34A853" d="M24 48c6.2 0 11.4-2 15.2-5.5l-7.5-5.8c-2 1.4-4.6 2.2-7.7 2.2-6.3 0-11.7-4.2-13.6-9.9l-8 6.2C6.5 42.6 14.6 48 24 48z"/></svg>
+              Google Maps
+            </label>
+          </div>
+          <div class="source-option">
+            <input type="radio" name="source" id="tripadvisor" value="tripadvisor" />
+            <label for="tripadvisor">
+              <svg width="22" height="22" viewBox="0 0 60 60" fill="none"><circle cx="30" cy="30" r="30" fill="#34E0A1"/><text x="50%" y="55%" font-size="28" text-anchor="middle" fill="white" font-family="sans-serif">T</text></svg>
+              TripAdvisor
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <button type="submit" id="submitBtn">Search</button>
+    </form>
+
+    <div class="spinner" id="spinner"></div>
+    <div class="error-box" id="errorBox"></div>
+  </div>
+
+  <div class="results-header" id="resultsHeader">
+    Showing results for <span id="resultsLabel"></span>
+  </div>
+
+  <div class="results-grid" id="resultsGrid"></div>
+</div>
+
+<script>
+  const form = document.getElementById("searchForm");
+  const spinner = document.getElementById("spinner");
+  const errorBox = document.getElementById("errorBox");
+  const resultsHeader = document.getElementById("resultsHeader");
+  const resultsLabel = document.getElementById("resultsLabel");
+  const resultsGrid = document.getElementById("resultsGrid");
+  const submitBtn = document.getElementById("submitBtn");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const location = document.getElementById("location").value.trim();
+    const foodType = document.getElementById("foodType").value.trim() || "restaurants";
+    const source = document.querySelector('input[name="source"]:checked').value;
+
+    errorBox.style.display = "none";
+    resultsHeader.style.display = "none";
+    resultsGrid.innerHTML = "";
+    spinner.style.display = "block";
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Searching…";
+
+    try {
+      const res = await fetch("/search", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ location, query: foodType, source }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Something went wrong.");
+      }
+
+      const results = data.results || [];
+      const sourceName = source === "google" ? "Google Maps" : "TripAdvisor";
+
+      resultsLabel.textContent = `"${foodType}" in ${location} via ${sourceName}`;
+      resultsHeader.style.display = "block";
+
+      if (results.length === 0) {
+        resultsGrid.innerHTML = '<div class="no-results">No results found. Try a different search.</div>';
+      } else {
+        resultsGrid.innerHTML = results.map(r => `
+          <div class="result-card">
+            <h3>${r.name || "Unnamed"}</h3>
+            <div class="result-meta">
+              ${r.rating != null ? `<span class="badge rating">⭐ ${r.rating}</span>` : ""}
+              ${r.reviews_count != null ? `<span class="badge">${r.reviews_count.toLocaleString()} reviews</span>` : ""}
+              ${r.price_level ? `<span class="badge price">${r.price_level}</span>` : ""}
+              ${r.category ? `<span class="badge">${Array.isArray(r.category) ? r.category.join(", ") : r.category}</span>` : ""}
+            </div>
+            ${r.address ? `<div class="result-address">📍 ${r.address}</div>` : ""}
+            ${r.url ? `<a class="result-link" href="${r.url}" target="_blank" rel="noopener">View on ${sourceName} →</a>` : ""}
+          </div>
+        `).join("");
+      }
+
+    } catch (err) {
+      errorBox.textContent = err.message;
+      errorBox.style.display = "block";
+    } finally {
+      spinner.style.display = "none";
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Search";
+    }
+  });
+</script>
+
+</body>
+</html>

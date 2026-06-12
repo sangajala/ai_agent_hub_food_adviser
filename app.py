@@ -3,12 +3,17 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 from langchain_core.messages import HumanMessage
 
 from agent.graph import food_agent
 
 app = Flask(__name__)
+
+
+@app.get("/")
+def index():
+    return render_template("index.html")
 
 
 @app.get("/health")

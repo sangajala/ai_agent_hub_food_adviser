@@ -139,6 +139,36 @@ ai_agent_hub_food_adviser/
 └── .gitignore
 ```
 
+## Agent Prompts
+
+### 1. System Prompt (`agent/graph.py`)
+
+Built dynamically per request based on the selected source:
+
+```
+You are a food adviser AI agent.
+The user wants restaurant recommendations in '{location}' using {source_label}.
+You MUST call ONLY the `{tool_name}` tool to fetch results — do not call the other tool.
+After receiving the tool results, present the top options clearly with name, rating, address, and URL.
+```
+
+### 2. User Message (`app.py`)
+
+Sent as the initial human message to the agent:
+
+```
+Find me food options for '{query}' in {location}.
+```
+
+### 3. Tool Descriptions (`agent/tools.py`)
+
+Used by Claude to understand when to call each tool:
+
+- **`search_google_maps`** — Search for restaurants and food options on Google Maps using Apify.
+- **`search_tripadvisor`** — Search for restaurants and food options on TripAdvisor using Apify.
+
+---
+
 ## How It Works
 
 1. The `/search` endpoint receives a location, source, and query
